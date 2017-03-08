@@ -8,9 +8,17 @@
 #include <windows.h>
 
 
-std::map< int, MyTaskPtr > g_taskMap;        ///< 태스크 맵
-std::map< int, MyTaskPtr > g_activeTaskMap;  ///< 액티브 태스크 맵
-std::map< int, MyTaskPtr > g_pendingTaskMap; ///< 지연된 태스크 맵
+/// task map
+typedef std::map< int, MyTaskPtr > TaskMap;
+
+/// task map with tag
+typedef std::map< std::string, TaskMap > TaskMapWithTag;
+
+TaskMap g_taskMap;        ///< 태스크 맵
+TaskMap g_activeTaskMap;  ///< 액티브 태스크 맵
+TaskMap g_pendingTaskMap; ///< 지연된 태스크 맵
+
+TaskMapWithTag g_taskListMapWithTag; ///< task map(key: tag, value: task list)
 
 int g_createdTaskCount   = 0;
 int g_completedTaskCount = 0;
@@ -53,6 +61,21 @@ void Print()
 	for ( MyTaskPtr task : pendingTaskList )
 		printf( "	%d. %s(#%d)\n", no++, task->name.c_str(), task->id );
 
+	for ( auto& pair : g_taskListMapWithTag )
+	{
+		const std::string& tag     = pair.first;
+		const TaskMap&     taskMap = pair.second;
+
+		printf( "\n" );
+		printf( "#Tag: %s\n", tag.c_str() );
+		no = 1;
+		for ( auto& pair2 : taskMap )
+		{
+			const MyTaskPtr& task = pair2.second;
+			printf( "	%d. %s(#%d)\n", no++, task->name.c_str(), task->id );
+		}
+	}
+
 	int remainingTaskCount = g_createdTaskCount - g_completedTaskCount - g_cancelledTaskCount;
 
 	printf( "\n" );
@@ -79,7 +102,42 @@ void PrintCode()
 		MyTaskPtr task = pair.second;
 		fprintf( file, "make_active	%d\n", task->id );
 	}
+
+	for ( auto& pair : g_taskListMapWithTag )
+	{
+		const std::string& tag      = pair.first;
+		const TaskMap&     taskMap = pair.second;
+
+		for ( auto& pair2 : taskMap )
+		{
+			const MyTaskPtr& task = pair2.second;
+			fprintf( file, "tag	%d	%s\n", task->id, tag.c_str() );
+		}
+	}
 	fclose( file );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @brief	handles 'tag' command
+///
+/// @return	no returns
+///////////////////////////////////////////////////////////////////////////////////////////////////
+void HandleTag()
+{
+	int         id = atoi( strtok( nullptr, " \t" ) );
+	std::string tag = strtok( nullptr, "\r\n" );
+
+	auto iter = g_taskMap.find( id );
+	if ( iter == g_taskMap.end() )
+	{
+		printf( "invalid task id: %d\n", id );
+		fflush( stdin );
+		getchar();
+		exit( 1 );
+	}
+
+	MyTaskPtr task = iter->second;
+	g_taskListMapWithTag[ tag ][ task->id ] = task;
 }
 
 int main()
@@ -187,6 +245,10 @@ int main()
 
 			MyTaskPtr task = iter->second;
 			task->priority = value;
+		}
+		else if ( !strcmp( command, "tag" ) )
+		{
+			HandleTag();
 		}
 		else
 		{
