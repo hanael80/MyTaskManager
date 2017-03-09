@@ -197,7 +197,7 @@ int main()
 
 			g_cancelledTaskCount++;
 		}
-		else if ( !strcmp( command, "make_active" ) )
+		else if ( !strcmp( command, "make_active" ) || !strcmp( command, "active" ) )
 		{
 			int id = atoi( strtok( nullptr, " \t\r\n" ) );
 
@@ -213,7 +213,7 @@ int main()
 			g_pendingTaskMap.erase( id );
 			g_activeTaskMap[ id ] = task;
 		}
-		else if ( !strcmp( command, "make_pending" ) )
+		else if ( !strcmp( command, "make_pending" ) || !strcmp( command, "pending" ) )
 		{
 			int id = atoi( strtok( nullptr, " \t\r\n" ) );
 
