@@ -137,7 +137,33 @@ void HandleTag()
 	}
 
 	MyTaskPtr task = iter->second;
+	task->tagSet.insert( tag );
 	g_taskListMapWithTag[ tag ][ task->id ] = task;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @brief	deletes a task with id
+///
+/// @param	id	identifier
+///
+/// @return	no returns
+///////////////////////////////////////////////////////////////////////////////////////////////////
+void DeleteTask( int id )
+{
+	auto iter = g_taskMap.find( id );
+	if ( iter == g_taskMap.end() )
+	{
+		printf( "invalid task. [id: %d]\n", id );
+		return;
+	}
+
+	MyTaskPtr task = iter->second;
+	for ( const std::string& tag : task->tagSet )
+		g_taskListMapWithTag[ tag ].erase( id );
+
+	g_activeTaskMap  .erase( id );
+	g_pendingTaskMap .erase( id );
+	g_taskMap        .erase( iter );
 }
 
 int main()
@@ -173,28 +199,14 @@ int main()
 		{
 			int id = atoi( strtok( nullptr, " \t\r\n" ) );
 
-			auto iter = g_activeTaskMap.find( id );
-			if ( iter == g_activeTaskMap.end() )
-			{
-				printf( "not active. id: %d\n", id );
-				fflush( stdin );
-				getchar();
-				exit( 1 );
-			}
-
-			g_activeTaskMap.erase( id );
-			g_taskMap.erase( id );
-
+			DeleteTask( id );
 			g_completedTaskCount++;
 		}
 		else if ( !strcmp( command, "cancel_task" ) || !strcmp( command, "cancel" ) )
 		{
 			int id = atoi( strtok( nullptr, " \t\r\n" ) );
 
-			g_activeTaskMap  .erase( id );
-			g_pendingTaskMap .erase( id );
-			g_taskMap        .erase( id );
-
+			DeleteTask( id );
 			g_cancelledTaskCount++;
 		}
 		else if ( !strcmp( command, "make_active" ) || !strcmp( command, "active" ) )

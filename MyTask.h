@@ -1,12 +1,20 @@
 #pragma once
 
 
+#include <unordered_set>
+
+
 class MyTask
 {
+private:
+	/// tag set typedef
+	typedef std::unordered_set< std::string > TagSet;
+
 public:
 	int         id;       ///< 식별자
 	std::string name;     ///< 이름
 	int         priority; ///< 우선 순위
+	TagSet      tagSet;   ///< tag set
 
 public:
 	/// 생성자
