@@ -50,7 +50,12 @@ void Print()
 	std::vector< MyTaskPtr > pendingTaskList;
 	pendingTaskList.reserve( g_pendingTaskMap.size() );
 	for ( auto& pair : g_pendingTaskMap )
+	{
+		MyTaskPtr task = pair.second;
+		if ( !task->tagSet.empty() ) continue;
+
 		pendingTaskList.push_back( pair.second );
+	}
 
 	std::sort( pendingTaskList.begin(), pendingTaskList.end(), []( MyTaskPtr lhs, MyTaskPtr rhs )
 	{
