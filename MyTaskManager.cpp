@@ -97,7 +97,7 @@ void PrintCode()
 	for ( auto& pair : g_taskMap )
 	{
 		MyTaskPtr task = pair.second;
-		fprintf( file, "create_task	%d	%s\n", task->id, task->name.c_str() );
+		fprintf( file, "create	%d	%s\n", task->id, task->name.c_str() );
 		if ( task->priority )
 			fprintf( file, "priority	%d	%d\n", task->id, task->priority );
 	}
@@ -130,7 +130,14 @@ void PrintCode()
 void HandleTag()
 {
 	int         id = atoi( strtok( nullptr, " \t" ) );
-	std::string tag = strtok( nullptr, "\r\n" );
+	const char* tag = strtok( nullptr, "\r\n" );
+	if ( !tag )
+	{
+		printf( "tag is null. [id: %d]\n", id );
+		fflush( stdin );
+		getchar();
+		exit( 1 );
+	}
 
 	auto iter = g_taskMap.find( id );
 	if ( iter == g_taskMap.end() )
